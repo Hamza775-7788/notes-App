@@ -3,10 +3,12 @@ import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
 import 'package:note_app/core/constant/colors.dart';
 import 'package:note_app/model/noteMpdel.dart';
-import 'package:note_app/view/screen/addNoteview.dart';
+
 import 'package:note_app/view/screen/editView.dart';
+import 'package:note_app/view/widget/floatButton.dart';
 import 'package:note_app/view/widget/noteListItem.dart';
 import 'package:note_app/view/widget/saerchBar.dart';
+import 'package:note_app/view/widget/titleNotesCounter.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -51,89 +53,62 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: PopupMenuButton(
-          itemBuilder: (context) {
-            return [];
-          },
-        ),
-        centerTitle: true,
         backgroundColor: AppColors.background,
-        title: const Text("Note App "),
-        actions: [
-          IconButton(
-              onPressed: () {
-                showSearch(context: context, delegate: SaerchBar(data: data));
-              },
-              icon: const Icon(Icons.search_rounded))
-        ],
-      ),
-      body: data.isEmpty
-          ? Center(child: Lottie.asset('asset/lottie/1.json', height: 200))
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.only(top: 15, right: 15, left: 15),
-                  child: data.isEmpty
-                      ? const Text(
-                          ' Note is Empty',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        )
-                      : data.length == 1
-                          ? const Text(
-                              'one Note',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            )
-                          : Text(
-                              '${data.length} Notes',
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                      padding: const EdgeInsets.all(15),
-                      itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        final note = data[index];
-                        return NotesListItem(
-                          noteModel: note,
-                          onDelete: () {
-                            deleteNote(note);
-                          },
-                          onUpdate: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return EditNote(
-                                      onPressed: (title, content) {
-                                        updateNote(note, title, content);
-                                      },
-                                      note: note);
-                                });
-                          },
-                        );
-                      }),
-                ),
-              ],
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              builder: (context) => AddNoteView(
-                    onPressed: (title, content) {
-                      addNewNote(title, content);
-                    },
-                  ));
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
+        appBar: AppBar(
+          leading: PopupMenuButton(
+            itemBuilder: (context) {
+              return [];
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: AppColors.background,
+          title: const Text("Note App "),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  showSearch(context: context, delegate: SaerchBar(data: data));
+                },
+                icon: const Icon(Icons.search_rounded))
+          ],
+        ),
+        body: data.isEmpty
+            ? Center(child: Lottie.asset('asset/lottie/1.json', height: 200))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TitleNotesCounter(data: data),
+                  Expanded(
+                    child: ListView.builder(
+                        padding: const EdgeInsets.all(15),
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final note = data[index];
+                          return NotesListItem(
+                            noteModel: note,
+                            onDelete: () {
+                              deleteNote(note);
+                            },
+                            onUpdate: () {
+                              showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) {
+                                    return EditNote(
+                                        onPressed: (title, content) {
+                                          updateNote(note, title, content);
+                                        },
+                                        note: note);
+                                  });
+                            },
+                          );
+                        }),
+                  ),
+                ],
+              ),
+        floatingActionButton: FloatButton(
+          onAdd: (title, content) {
+            addNewNote(title, content);
+          },
+        ));
   }
 }
 
