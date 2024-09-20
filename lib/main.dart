@@ -1,3 +1,4 @@
+import 'package:accessibility_tools/accessibility_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:note_app/view/screen/splashView.dart';
 
@@ -9,9 +10,15 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      builder: (context, child) => AccessibilityTools(
+        enableButtonsDrag: true,
+        checkFontOverflows: true,
+        checkImageLabels: true,
+        child: child,
+      ),
       debugShowCheckedModeBanner: false,
-      home: SplashView(),
+      home: const SplashView(),
     );
   }
 }
