@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
 import 'package:note_app/core/constant/colors.dart';
+import 'package:note_app/data/local_data_sourse.dart';
+
 import 'package:note_app/model/noteMpdel.dart';
 
 import 'package:note_app/view/screen/editView.dart';
@@ -20,34 +21,57 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   List<NoteModel> data = [];
   // add new note to list notes
-  void addNewNote(title, content) {
-    data.add(NoteModel(
-        title: title,
-        contant: content,
-        date:
-            '${DateTime.now().year}/${DateTime.now().month}/${DateTime.now().day}',
-        time:
-            '${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}'));
-    setState(() {});
-  }
-
 // delete note form list
-  void deleteNote(NoteModel noteModel) {
-    data.remove(noteModel);
-    setState(() {});
+  void deleteNote(NoteModel noteModel) async {
+    if (await LocalDataSourse.deleteNote(noteModel.id)) {
+      getData();
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Success"),
+        backgroundColor: Colors.green,
+      ));
+    } else {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Failed"),
+        backgroundColor: Colors.red,
+      ));
+    }
   }
 
   // update Note
-  void updateNote(NoteModel note, String newTitle, String newContent) {
+  void updateNote(NoteModel note, String newTitle, String newContent) async {
     final NoteModel newNote = NoteModel(
+        id: note.id,
         title: newTitle,
         contant: newContent,
-        date:
-            '${DateTime.now().year}/${DateTime.now().month}/${DateTime.now().day}',
-        time:
-            '${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}');
-    data = data.map((e) => e == note ? newNote : e).toList();
+        date: note.date,
+        time: note.time);
+    if (await LocalDataSourse.updateNote(note.id, newNote)) {
+      getData();
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Success"),
+        backgroundColor: Colors.green,
+      ));
+    } else {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Failed"),
+        backgroundColor: Colors.red,
+      ));
+    }
+  }
+
+  getData() async {
+    data = await LocalDataSourse.getNotes();
     setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
   }
 
   @override
@@ -78,37 +102,40 @@ class _HomeViewState extends State<HomeView> {
                 children: [
                   TitleNotesCounter(data: data),
                   Expanded(
-                    child: ListView.builder(
-                        padding: const EdgeInsets.all(15),
-                        itemCount: data.length,
-                        itemBuilder: (context, index) {
-                          final note = data[index];
-                          return NotesListItem(
-                            noteModel: note,
-                            onDelete: () {
-                              deleteNote(note);
-                            },
-                            onUpdate: () {
-                              showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) {
-                                    return EditNote(
-                                        onPressed: (title, content) {
-                                          updateNote(note, title, content);
-                                        },
-                                        note: note);
-                                  });
-                            },
-                          );
-                        }),
-                  ),
+                      child: RefreshIndicator(
+                          child: ListView.builder(
+                              padding: const EdgeInsets.all(15),
+                              itemCount: data.length,
+                              itemBuilder: (context, index) {
+                                final note = data[index];
+                                return NotesListItem(
+                                  noteModel: note,
+                                  onDelete: () {
+                                    deleteNote(note);
+                                  },
+                                  onUpdate: () {
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (context) {
+                                          return EditNote(
+                                              onPressed: (title, content) {
+                                                updateNote(
+                                                    note, title, content);
+                                              },
+                                              note: note);
+                                        });
+                                  },
+                                );
+                              }),
+                          onRefresh: () {
+                            return getData();
+                          })),
                 ],
               ),
         floatingActionButton: FloatButton(
-          onAdd: (title, content) {
-            addNewNote(title, content);
+          onAdd: () {
+            getData();
           },
         ));
   }
 }
-
